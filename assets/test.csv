@@ -1,0 +1,2 @@
+email,id,first_name,last_name,password,checking,savings,active,overdraft_count
+test@emai.com,10001,William,Hartnell,4fg56,100,False,True,0

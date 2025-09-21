@@ -7,7 +7,7 @@ id,first_name,last_name,password,checking,savings,active,overdraft_count
 10006,Suresh ,Sigera,wergt,63,False,False,3
 10007,James ,Taylor,#@FG,-10,0,False,2
 10008,Melvin ,Gordon,GD4dS,-35,2567,True,1
-10009,Stacey ,Abrams,!fiuenrg,False,3452345,True,1
-100010,Jake ,Paul,wegtr,10000,-10,True,0
-100011,rtg,drg,2435365,5000,False,True,0
-100012,Devlin,Booth,123456,False,0,True,0
+10009,Devlin,Booth,123456,False,0,True,0
+10010,turki,almalki,9706,False,False,True,0
+10011,turki,almalki,9706,False,False,True,0
+10012,turki,almalki,1122,False,False,True,0

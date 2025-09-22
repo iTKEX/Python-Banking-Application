@@ -176,7 +176,9 @@ class Transactions:
                         case "2":
                             Transactions.add_money(customer)
                         case "3":
+                            Transactions.check_balance(customer)
                             Transactions.withdraw_money(customer)
+                            Transactions.is_active(customer)
                         case "4":
                             Bank.log_out()
                             return None
@@ -266,11 +268,9 @@ class Transactions:
         print(f"Your current balance is : {customer[Transactions.account_type]}$")
         if int(customer['overdraft_count']) == 2:
                 customer['active'] = "False"
-                print("Your account is deactivated. \nYou must settle your outstanding overdraft fees to reactivate it.")
                 return None
         fee = 35
-        Transactions.is_active(customer)
-        if float(customer[Transactions.account_type]) < 0 and int(customer['overdraft_count']) < 2:
+        if float(customer[Transactions.account_type]) <= 0 and int(customer['overdraft_count']) < 2:
             customer[Transactions.account_type] = float(customer[Transactions.account_type]) - fee
             customer['overdraft_count'] = int(customer['overdraft_count']) + 1
     
@@ -283,6 +283,8 @@ class Transactions:
         return None
     
     def withdraw_money(customer):
+        if customer['active'] == "False":
+            return
         print(f"You want to withdraw money from {Transactions.account_type}")
         amount_of_money = 0
         while float(amount_of_money) == 0 or float(amount_of_money) >= 101:
@@ -291,9 +293,7 @@ class Transactions:
                 print("That's above maximum")
                 print("Please enter valid number")
             elif float(amount_of_money) > 0 and float(amount_of_money) <101:
-                Transactions.is_active(customer)
                 customer[Transactions.account_type] = float(customer[Transactions.account_type]) - float(amount_of_money)
-                Transactions.check_balance(customer)
                 print(f"Withdraw successfully, Your current balance is : {customer[Transactions.account_type]}$")
                 return None
             else:

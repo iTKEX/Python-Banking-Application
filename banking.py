@@ -45,7 +45,9 @@ fieldnames = [
 
 # --------------------- TO DO --------------------- #
 """
-Customer can add money:
+#1 Check user Accounts:
+
+#2 Customer can add money:
     - Customer can add money to saving
     - Customer can add money to checking
 
@@ -61,8 +63,8 @@ class Customer:
         first_name,
         last_name,
         password,
-        savings=False,
         checking=False,
+        savings=False,
         active=True,
         overdraft_count=0,
     ):
@@ -143,37 +145,59 @@ class Bank:
 
     def log_out():
         Bank.current_user = None
+        return None
 
 
 # --------------------- Transactions Class ---------------------#
 class Transactions:
+    account_type = None
+
     def __init__(self):
         pass
 
     def transactions_menu(customer):
         user_options = ["1", "2", "3", "q"]
         user_input = None
+        user_choise = None
         while user_input not in user_options:
             print("\n\n", transactions)
             print(f"Hello {customer['first_name']} {customer['last_name']}")
             result = Transactions.check_user_accounts(customer)
-            if result == "transactions_menu":
-                print(
-                    "Which Account you want to access.\n\n1. Checking account.\n2. Saving account\n3. Log out"
-                )
+            if result == "select_account_menu":
+                Transactions.select_account_menu(customer)
+            elif result == "transactions_menu":
+                while user_choise != "4":
+                    print(transactions)
+                    print("1. Check your account balance \n2. Add money\n3. Withdraw money\n4. log out")
+                    user_choise = input("Please choose what you need\t")
+                    match user_choise:
+                        case "1":
+                            Transactions.check_balance(customer)
+                        case "2":
+                            Transactions.add_money(customer)
+                        case "3":
+                            Transactions.withdraw_money(customer)
+                        case "4":
+                            Bank.log_out()
+                            return None
 
-                user_input = input("\nPlease Enter your choice as a number: ")
-
-                if user_input not in user_options:
-                    print("Please enter a valid choice")
-
-                match user_input:
-                    case "1":
-                        break  # run function return withdraw()
-                    case "2":
-                        break
-                    case "3":
-                        return "main"
+    def select_account_menu(customer):
+        user_options = ["1", "2", "3", "q"]
+        while user_input not in user_options:
+            print(transactions)
+            print("Which Account you want to access")
+            print("1. Saving account \n2. Checking account\n3. log out")
+            user_input = input("Which account you want to access")
+            match user_input:
+                case "1":
+                    Transactions.account_type = "savings"
+                    return "transactions_menu"
+                case "2":
+                    Transactions.account_type = "checking"
+                    return "transactions_menu"
+                case "3":
+                    Bank.log_out()
+                    return None
 
     def check_user_accounts(customer):
         user_options = ["1", "2", "3"]
@@ -183,39 +207,107 @@ class Transactions:
                 print("You don't have any account")
                 print("You can create checking, saving or Both")
                 print("1. For both\n2. For Checking\n3. For Saving")
-                user_input = input("You Want account Please Choice")
+                user_input = input("Which account you want to create Please Choose\t")
                 match user_input:
                     case "1":
                         customer["checking"] = 0
                         customer["savings"] = 0
                         return "transactions_menu"
                     case "2":
-                        customer.checking = 0
+                        customer["checking"] = 0
                         return "transactions_menu"
                     case "3":
-                        customer.savings = 0
+                        customer["savings"] = 0
                         return "transactions_menu"
-        elif customer.checking == "False":
+        elif customer["checking"] != "False":
             while user_input not in user_options:
-                print("")
-                print("You can create checking, saving or Both")
-                print("1. For both\n2. For Checking\n3. For Saving")
-                user_input = input("You Want account Please Choice")
+                print(
+                    "You have only checking account You want access it or create Saving account?"
+                )
+                print(
+                    "1. Access Checking account \n2. Create saving account and access it\n3. log out"
+                )
+                user_input = input("Please enter your choice \t")
                 match user_input:
                     case "1":
-                        customer.checking = 0
-                        customer.savings = 0
+                        Transactions.account_type = "checking"
                         return "transactions_menu"
                     case "2":
-                        customer.checking = 0
-                        return Transactions.transactions_menu()
+                        customer["savings"] = 0
+                        Transactions.account_type = "savings"
+                        return "transactions_menu"
                     case "3":
-                        customer.savings = 0
-                        return Transactions.transactions_menu()
-        elif customer.savings == "False":
-            pass
+                        Bank.log_out()
+                        return None
+        elif customer["savings"] != "False":
+            while user_input not in user_options:
+                print(
+                    "You have only Saving account You want access it or create Checking account?"
+                )
+                print(
+                    "1. Access Saving account \n2. Create Checking account and access it\n3. log out"
+                )
+                user_input = input("Please Choose option")
+                match user_input:
+                    case "1":
+                        Transactions.account_type = "savings"
+                        return "transactions_menu"
+                    case "2":
+                        customer["checking"] = 0
+                        Transactions.account_type = 'checking'
+                        return "transactions_menu"
+                    case "3":
+                        Bank.log_out()
+                        return None
+        else:
+            return "transactions_menu"
+        
+    def check_balance(customer):
+        print(f"Your current balance is : {customer[Transactions.account_type]}$")
+        if int(customer['overdraft_count']) == 2:
+                customer['active'] = "False"
+                print("Your account is deactivated. \nYou must settle your outstanding overdraft fees to reactivate it.")
+                return None
+        fee = 35
+        Transactions.is_active(customer)
+        if float(customer[Transactions.account_type]) < 0 and int(customer['overdraft_count']) < 2:
+            customer[Transactions.account_type] = float(customer[Transactions.account_type]) - fee
+            customer['overdraft_count'] = int(customer['overdraft_count']) + 1
+    
+    
+    def add_money(customer):
+        print(f"You want to add money to {Transactions.account_type}")
+        amount_of_money = input("Please Enter the amount of money you want to add it\t")
+        customer[Transactions.account_type] = float(customer[Transactions.account_type]) + float(amount_of_money)
+        print(f"Add money successfully, Your current balance is : {customer[Transactions.account_type]}$")
+        return None
+    
+    def withdraw_money(customer):
+        print(f"You want to withdraw money from {Transactions.account_type}")
+        amount_of_money = 0
+        while float(amount_of_money) == 0 or float(amount_of_money) >= 101:
+            amount_of_money = input("Please Enter the amount of money you want to withdraw it (Your maximux is 100$)\t")
+            if float(amount_of_money) > 100:
+                print("That's above maximum")
+                print("Please enter valid number")
+            elif float(amount_of_money) > 0 and float(amount_of_money) <101:
+                Transactions.is_active(customer)
+                customer[Transactions.account_type] = float(customer[Transactions.account_type]) - float(amount_of_money)
+                Transactions.check_balance(customer)
+                print(f"Withdraw successfully, Your current balance is : {customer[Transactions.account_type]}$")
+                return None
+            else:
+                print("Please enter valid number")
+                
 
-
+    def is_active(customer):
+        if customer['active'] == "False" and int(customer[Transactions.account_type]) < 0:
+            print("Your account is deactivated. \nYou must settle your outstanding overdraft fees to reactivate it.")
+            return None
+        elif customer['active'] == "False" and int(customer[Transactions.account_type])> 0:
+            customer['active'] = True
+            customer['overdraft_count'] = 0
+            return None
 # --------------------- FUNCTIONS ---------------------#
 def init():
     # this is the entry point

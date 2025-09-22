@@ -33,6 +33,113 @@ fieldnames = [
     "overdraft_count",
 ]
 
+# --------------------- TO DO --------------------- #
+"""
+Customer can add money:
+    - Customer can add money to saving
+    - Customer can add money to checking
+
+"""
+
+# --------------------- Checker FUNCTIONS ---------------------#
+
+
+# --------------------- Menus ---------------------#
+def start_menu():
+    session = True
+    while session:
+        print(welcome)
+        print(
+            "Please choose from below.\n1. SIGN UP\n2. Log in to your account.\n3. Quit"
+        )
+        user_input = input("\nPlease Enter your choice as a number: ")
+        match user_input:
+            case "1":
+                print("\n")
+                result = bank.sign_up_account()
+                if result:
+                    session = Transactions.transactions_menu()
+            case "2":
+                print("\n")
+                result = bank.sign_in_account()
+                if result:
+                    Transactions.transactions_menu()
+            case "3":
+                print("\n")
+                session = None
+            case _:
+                print("Please enter a valid choice")
+                continue
+
+
+def check_user_accounts(customer):
+    user_options = ["1", "2", "3"]
+    user_input = None
+    if customer.checking == "False" and customer.savings == "False":
+        while user_input not in user_options:
+            print("You don't have any account")
+            print("You can create checking, saving or Both")
+            print("1. For both\n2. For Checking\n3. For Saving")
+            user_input = input("You Want account Please Choice")
+            match user_input:
+                case "1":
+                    customer.checking = 0
+                    customer.savings = 0
+                    return "transactions_menu"
+                case "2":
+                    customer.checking = 0
+                    return "transactions_menu"
+                case "3":
+                    customer.savings = 0
+                    return "transactions_menu"
+    elif customer.checking == "False":
+        while user_input not in user_options:
+            print("")
+            print("You can create checking, saving or Both")
+            print("1. For both\n2. For Checking\n3. For Saving")
+            user_input = input("You Want account Please Choice")
+            match user_input:
+                case "1":
+                    customer.checking = 0
+                    customer.savings = 0
+                    return "transactions_menu"
+                case "2":
+                    customer.checking = 0
+                    return Transactions.transactions_menu()
+                case "3":
+                    customer.savings = 0
+                    return Transactions.transactions_menu()
+    elif customer.savings == "False":
+        pass
+
+
+def transactions_menu():
+    customer = Customer(**Bank.current_user)
+    user_options = ["1", "2", "3", "q"]
+    user_input = None
+    while user_input not in user_options:
+        print("\n\n", transactions)
+        print(f"Hello {customer.first_name} {customer.last_name}")
+        result = customer.check_user_accounts()
+        if result == "transactions_menu":
+            print(
+                "Which Account you want to access.\n\n1. Checking account.\n2. Saving account\n3. Log out"
+            )
+
+            user_input = input("\nPlease Enter your choice as a number: ")
+
+            if user_input not in user_options:
+                print("Please enter a valid choice")
+
+            match user_input:
+                case "1":
+                    break  # run function return withdraw()
+                case "2":
+                    break
+                case "3":
+                    Bank.current_user = None
+                    return "main"
+
 
 # --------------------- Customer Class ---------------------#
 class Customer:
@@ -56,46 +163,7 @@ class Customer:
         self.savings = savings
         self.active = active
         self.overdraft_count = overdraft_count
-        
-    def check_user_accounts(self):
-        user_options = ["1","2","3"]
-        user_input = None
-        if self.checking == 'False' and self.savings == 'False':
-            while user_input not in user_options:
-                print("You don't have any account")
-                print("You can create checking, saving or Both")
-                print("1. For both\n2. For Checking\n3. For Saving")
-                user_input = input("You Want account Please Choice")
-                match user_input:
-                    case "1":
-                        self.checking = 0
-                        self.savings = 0
-                        return 'transactions_menu'
-                    case "2":
-                        self.checking = 0
-                        return 'transactions_menu'
-                    case "3":
-                        self.savings = 0
-                        return 'transactions_menu'
-        elif self.checking == 'False':
-            while user_input not in user_options:
-                print("")
-                print("You can create checking, saving or Both")
-                print("1. For both\n2. For Checking\n3. For Saving")
-                user_input = input("You Want account Please Choice")
-                match user_input:
-                    case "1":
-                        self.checking = 0
-                        self.savings = 0
-                        return 'transactions_menu'
-                    case "2":
-                        self.checking = 0
-                        return Transactions.transactions_menu()
-                    case "3":
-                        self.savings = 0
-                        return Transactions.transactions_menu()
-        elif self.savings == 'False':
-            pass
+
 
 # --------------------- Bank Class ---------------------#
 class Bank:
@@ -115,9 +183,7 @@ class Bank:
 
     def sign_up_account(self):
         user_first_name = user_last_name = user_password = None
-
         while not user_first_name or not user_last_name or not user_password:
-
             print(sign_up)
             print("Please Enter your credintals:\n or quit: 'q'")
             user_first_name = input("Please Enter your first name: ").strip()
@@ -166,74 +232,20 @@ class Bank:
                 Bank.current_user = account
                 return True
         return False
-    
+
 
 # --------------------- Transactions Class ---------------------#
 class Transactions:
     # customer = Customer(**Bank.current_user)
     def __init__(self):
         pass
-    
-    def transactions_menu():
-        customer = Customer(**Bank.current_user)
-        user_options = ["1", "2", "3", "q"]
-        user_input = None
-        while user_input not in user_options:
-            print("\n\n",transactions)
-            print(f"Hello {customer.first_name} {customer.last_name}")
-            result = customer.check_user_accounts()
-            if result == 'transactions_menu' :
-                print(
-                    "Which Account you want to access.\n\n1. Checking account.\n2. Saving account\n3. Log out"
-                )
 
-                user_input = input("\nPlease Enter your choice as a number: ")
-
-                if user_input not in user_options:
-                    print("Please enter a valid choice")
-
-                match user_input:
-                    case "1":
-                        break  # run function return withdraw()
-                    case "2":
-                        break
-                    case "3":
-                        Bank.current_user = None
-                        return "main"
 
 # ------------------------- VARIABLES ------------------------#
 bank = Bank()
 
+
 # --------------------- FUNCTIONS ---------------------#
-
-
-def start_menu():
-    session = True
-    while session:
-        print(welcome)
-        print(
-            "Please choose from below.\n1. SIGN UP\n2. Log in to your account.\n3. Quit"
-        )
-        user_input = input("\nPlease Enter your choice as a number: ")
-        match user_input:
-            case "1":
-                print("\n")
-                result = bank.sign_up_account()
-                if result:
-                    session = Transactions.transactions_menu()
-            case "2":
-                print("\n")
-                result = bank.sign_in_account()
-                if result:
-                    Transactions.transactions_menu()
-            case "3":
-                print("\n")
-                session = None
-            case _:
-                print("Please enter a valid choice")
-                continue
-
-
 def init():
     # this is the entry point
     Bank.load_accounts()

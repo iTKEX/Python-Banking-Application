@@ -11,3 +11,4 @@ id,first_name,last_name,password,checking,savings,active,overdraft_count
 10010,turki,almalki,9706,False,False,True,0
 10011,turki,almalki,9706,False,False,True,0
 10012,turki,almalki,1122,False,False,True,0
+10013,turki,almalki,0000,False,False,True,0

@@ -3,6 +3,7 @@ TABLE OF CONTENT:
 - IMPORTS
 - CONSTANTS
 - Customer Class
+- History Class
 - Bank Class
 - Transactions Class
 - init()
@@ -48,11 +49,13 @@ fieldnames = [
     "overdraft_count",
 ]
 
+
 # --------------------- Customer Class ---------------------#
 class Customer:
-    '''
+    """
     Customer class if for init each customer in Bank
-    '''
+    """
+
     def __init__(
         self,
         id,
@@ -74,11 +77,18 @@ class Customer:
         self.overdraft_count = overdraft_count
 
 
+# ------------------- History Class --------------------#
+class History:
+    def __init__(self):
+        pass
+
+
 # --------------------- Bank Class ---------------------#
 class Bank:
-    '''
+    """
     Handle Bank accounts proccess and information
-    '''
+    """
+
     accounts = []
     current_user = None
     csv_file_path = "assets/bank.csv"
@@ -90,7 +100,7 @@ class Bank:
             accounts = [row for row in reader]
         Bank.accounts = accounts
 
-    #create new account and add it to csv
+    # create new account and add it to csv
     def sign_up_account():
         user_first_name = user_last_name = user_password = None
         while not user_first_name or not user_last_name or not user_password:
@@ -138,6 +148,7 @@ class Bank:
                 return True
             else:
                 print("Please Enter valid credintals")
+
     # check the user credintals
     def check_sign_in_credintals(id, password):
         for account in Bank.accounts:
@@ -145,7 +156,7 @@ class Bank:
                 Bank.current_user = account
                 return True
         return False
-    
+
     # save the changes on account to the csv file
     def save_accounts():
         with open(Bank.csv_file_path, "w", newline="") as file:
@@ -162,16 +173,17 @@ class Bank:
 
 # --------------------- Transactions Class ---------------------#
 class Transactions:
-    '''
+    """
     Handle all porject transactions
-    '''
+    """
+
     account_type = None
 
     def __init__(self):
         pass
 
     def transactions_menu(customer):
-        user_options = ["1", "2", "3","4", "5","6"]
+        user_options = ["1", "2", "3", "4", "5", "6"]
         user_input = None
         user_choise = None
         while user_input not in user_options:
@@ -183,7 +195,9 @@ class Transactions:
             elif result == "transactions_menu":
                 while user_choise != "6":
                     print(transactions)
-                    print("1. Check your account balance \n2. Add money\n3. Withdraw money\n4. Transfer money\n5. Change account\n6. log out")
+                    print(
+                        "1. Check your account balance \n2. Add money\n3. Withdraw money\n4. Transfer money\n5. Change account\n6. log out"
+                    )
                     user_choise = input("Please choose what you need\t")
                     match user_choise:
                         case "1":
@@ -202,6 +216,7 @@ class Transactions:
                         case "6":
                             Bank.log_out()
                             return None
+
     # menu to make user choose which account he want to deal with
     def select_account_menu(customer):
         user_options = ["1", "2", "3"]
@@ -283,74 +298,99 @@ class Transactions:
                     case "2":
                         customer["checking"] = 0
                         Bank.save_accounts()
-                        Transactions.account_type = 'checking'
+                        Transactions.account_type = "checking"
                         return "transactions_menu"
                     case "3":
                         Bank.log_out()
                         return None
         else:
             return "transactions_menu"
-        
+
     # check for user current balance
     def check_balance(customer):
         print(f"Your current balance is : {customer[Transactions.account_type]}$")
-        if int(customer['overdraft_count']) == 2:
-                customer['active'] = "False"
-                Bank.save_accounts()
-                return None
-    
-    # add money to user account 
+        if int(customer["overdraft_count"]) == 2:
+            customer["active"] = "False"
+            Bank.save_accounts()
+            return None
+
+    # add money to user account
     def add_money(customer):
         print(f"You want to add money to {Transactions.account_type}")
         amount_of_money = input("Please Enter the amount of money you want to add it\t")
-        customer[Transactions.account_type] = float(customer[Transactions.account_type]) + float(amount_of_money)
-        print(f"Add money successfully, Your current balance is : {customer[Transactions.account_type]}$")
+        customer[Transactions.account_type] = float(
+            customer[Transactions.account_type]
+        ) + float(amount_of_money)
+        print(
+            f"Add money successfully, Your current balance is : {customer[Transactions.account_type]}$"
+        )
         Bank.save_accounts()
         return None
-    
+
     # deposite money from user account
     def withdraw_money(customer):
-        if customer['active'] == "False":
+        if customer["active"] == "False":
             return
         print(f"You want to withdraw money from {Transactions.account_type}")
         amount_of_money = 0
         while float(amount_of_money) == 0 or float(amount_of_money) >= 101:
-            amount_of_money = input("Please Enter the amount of money you want to withdraw it (Your maximux is 100$)\t")
+            amount_of_money = input(
+                "Please Enter the amount of money you want to withdraw it (Your maximux is 100$)\t"
+            )
             if float(amount_of_money) > 100:
                 print("That's above maximum")
                 print("Please enter valid number")
-            elif float(amount_of_money) > 0 and float(amount_of_money) <101:
-                customer[Transactions.account_type] = float(customer[Transactions.account_type]) - float(amount_of_money)
+            elif float(amount_of_money) > 0 and float(amount_of_money) < 101:
+                customer[Transactions.account_type] = float(
+                    customer[Transactions.account_type]
+                ) - float(amount_of_money)
                 fee = 35
-                if float(customer[Transactions.account_type]) <= 0 and int(customer['overdraft_count']) < 2:
-                    customer[Transactions.account_type] = float(customer[Transactions.account_type]) - fee
-                    customer['overdraft_count'] = int(customer['overdraft_count']) + 1
-                    if int(customer['overdraft_count']) == 2:
-                        customer['active'] = "False"
-                print(f"Withdraw successful, Your Current Balance is: {customer[Transactions.account_type]}$")
+                if (
+                    float(customer[Transactions.account_type]) <= 0
+                    and int(customer["overdraft_count"]) < 2
+                ):
+                    customer[Transactions.account_type] = (
+                        float(customer[Transactions.account_type]) - fee
+                    )
+                    customer["overdraft_count"] = int(customer["overdraft_count"]) + 1
+                    if int(customer["overdraft_count"]) == 2:
+                        customer["active"] = "False"
+                print(
+                    f"Withdraw successful, Your Current Balance is: {customer[Transactions.account_type]}$"
+                )
                 Bank.save_accounts()
                 return None
             else:
                 print("Please enter valid number")
-                
+
     # check the status of user account
     def is_active(customer):
-        if customer['active'] == "False" and int(customer[Transactions.account_type]) < 0:
-            print("Your account is deactivated. \nYou must settle your outstanding overdraft fees to reactivate it.")
+        if (
+            customer["active"] == "False"
+            and int(customer[Transactions.account_type]) < 0
+        ):
+            print(
+                "Your account is deactivated. \nYou must settle your outstanding overdraft fees to reactivate it."
+            )
             Bank.save_accounts()
             return None
-        elif customer['active'] == "False" and int(customer[Transactions.account_type])> 0:
-            customer['active'] = True
-            customer['overdraft_count'] = 0
+        elif (
+            customer["active"] == "False"
+            and int(customer[Transactions.account_type]) > 0
+        ):
+            customer["active"] = True
+            customer["overdraft_count"] = 0
             Bank.save_accounts()
             return None
-    
+
     def transfer_money_menu(customer):
-        user_options = ["1","2","3"]
+        user_options = ["1", "2", "3"]
         user_input = None
         while user_input not in user_options:
             print("\n\n", transfer)
-            print("Select choice from below\n1. Transfer money between your accounts\n2. Transfer money to other person account\n3. Back to transactions menu")
+            print(
+                "Select choice from below\n1. Transfer money between your accounts\n2. Transfer money to other person account\n3. Back to transactions menu"
+            )
             user_input = input("Please Choose option\t")
             match user_input:
                 case "1":
@@ -360,7 +400,7 @@ class Transactions:
                     Transactions.transfer_to_person_account(customer)
                 case "3":
                     return None
-    
+
     # transfer money between customer accounts
     def transfer_between_accounts(customer):
         if customer["checking"] == "False" or customer["savings"] == "False":
@@ -377,12 +417,16 @@ class Transactions:
 
         src_balance = float(customer[source])
         if src_balance <= 0:
-            print(f"Cannot transfer: your {source} balance is {src_balance}$ (must be > 0).")
+            print(
+                f"Cannot transfer: your {source} balance is {src_balance}$ (must be > 0)."
+            )
             return None
         user_amount = None
-        
+
         while user_amount is None:
-            amount = input(f"Enter amount to transfer from {source} to {destination}: or 'C' for Cancel\t")
+            amount = input(
+                f"Enter amount to transfer from {source} to {destination}: or 'C' for Cancel\t"
+            )
             if amount.lower() == "c":
                 return None
             try:
@@ -394,7 +438,9 @@ class Transactions:
                 print("Amount must be greater than 0.")
                 continue
             if amount > src_balance:
-                print("Insufficient funds in the source account (no overdrafts allowed).")
+                print(
+                    "Insufficient funds in the source account (no overdrafts allowed)."
+                )
                 continue
             user_amount = amount
 
@@ -402,7 +448,9 @@ class Transactions:
         customer[destination] = float(customer[destination]) + user_amount
 
         print("Transfer successful.")
-        print(f"New balances -> Checking: {customer['checking']}$, Savings: {customer['savings']}$")
+        print(
+            f"New balances -> Checking: {customer['checking']}$, Savings: {customer['savings']}$"
+        )
         Bank.save_accounts()
         return None
 
@@ -411,11 +459,13 @@ class Transactions:
         Transactions.is_active(customer)
         if customer["active"] == "False":
             return None
-        
+
         source = Transactions.account_type
         src_balance = float(customer[source])
         if src_balance <= 0:
-            print(f"Cannot transfer: your {source} balance is {src_balance}$ (must be > 0).")
+            print(
+                f"Cannot transfer: your {source} balance is {src_balance}$ (must be > 0)."
+            )
             return None
 
         receiver_id = input("Enter recipient customer ID (or 'C' to cancel)\t")
@@ -431,7 +481,9 @@ class Transactions:
             print("Recipient not found.")
             return None
         if target is customer:
-            print("You cannot transfer to yourself here. Use 'Transfer between your accounts'.")
+            print(
+                "You cannot transfer to yourself here. Use 'Transfer between your accounts'."
+            )
             return None
 
         receiver_accounts = []
@@ -449,7 +501,9 @@ class Transactions:
         else:
             dest_choice = None
             while dest_choice not in ("1", "2", "3"):
-                print("Send to:\n1. Recipient Savings\n2. Recipient Checking\n3. Cancel")
+                print(
+                    "Send to:\n1. Recipient Savings\n2. Recipient Checking\n3. Cancel"
+                )
                 dest_choice = input("Choose option\t")
                 if dest_choice == "3":
                     return None
@@ -457,7 +511,9 @@ class Transactions:
 
         user_amount = None
         while user_amount is None:
-            amt = input(f"Enter amount to send from your {source} to recipient {destination} (or 'C' to cancel)\t")
+            amt = input(
+                f"Enter amount to send from your {source} to recipient {destination} (or 'C' to cancel)\t"
+            )
             if amt.lower() == "c":
                 return None
             try:
@@ -477,15 +533,18 @@ class Transactions:
         target[destination] = float(target[destination]) + user_amount
 
         print("Transfer successful.")
-        print(f"Your new balances -> Checking: {customer['checking']}$, Savings: {customer['savings']}$")
+        print(
+            f"Your new balances -> Checking: {customer['checking']}$, Savings: {customer['savings']}$"
+        )
         Bank.save_accounts()
         return None
 
+
 # --------------------- FUNCTIONS ---------------------#
 def init():
-    '''
+    """
     Entry point of Project
-    '''
+    """
     # load all accounts before project start
     Bank.load_accounts()
     # shows the project main menu

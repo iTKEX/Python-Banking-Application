@@ -11,6 +11,7 @@ TABLE OF CONTENT:
 
 # --------------------- IMPORTS ---------------------#
 import csv
+from datetime import date
 
 # --------------------- CONSTANTS ---------------------#
 welcome = """
@@ -49,6 +50,18 @@ fieldnames = [
     "overdraft_count",
 ]
 
+log_fieldnames = [
+    "transaction_id",
+    "acct_id",
+    "transaction_type",
+    "source_type",
+    "destination_type",
+    "destination_id",
+    "balance_before",
+    "balance_after",
+    "date",
+]
+
 
 # --------------------- Customer Class ---------------------#
 class Customer:
@@ -75,12 +88,6 @@ class Customer:
         self.savings = savings
         self.active = active
         self.overdraft_count = overdraft_count
-
-
-# ------------------- History Class --------------------#
-class History:
-    def __init__(self):
-        pass
 
 
 # --------------------- Bank Class ---------------------#
@@ -170,6 +177,38 @@ class Bank:
         Bank.current_user = None
         return None
 
+
+# ------------------- History Class --------------------#
+class History:
+    """
+    This class handle all user history log
+    """
+
+    # history bath
+    csv_file_path = "assets/history.csv"
+
+    def __init__(self):
+        pass
+
+    #  load log history from the csv file
+    def load_history():
+        with open(History.csv_file_path, "r") as file:
+            reader = csv.DictReader(file)
+            accounts = [row for row in reader]
+        Bank.accounts = accounts
+
+    # write the log history in the csv file
+    def log_writer():
+        with open(History.csv_file_path, "w", newline="") as file:
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            writer.writeheader()
+            for account in Bank.accounts:
+                writer.writerow(account)
+
+    # return today date as string
+    def today_date():
+        return date.today().isoformat()
+    
 
 # --------------------- Transactions Class ---------------------#
 class Transactions:

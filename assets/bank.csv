@@ -8,7 +8,7 @@ id,first_name,last_name,password,checking,savings,active,overdraft_count
 10007,James ,Taylor,#@FG,-10,0,False,2
 10008,Melvin ,Gordon,GD4dS,-35,2567,True,1
 10009,Devlin,Booth,123456,False,0,True,0
-10010,turki,almalki,9706,100,False,True,0
+10010,turki,almalki,9706,10,False,True,0
 10011,turki,almalki,9706,False,False,True,0
 10012,turki,almalki,1122,False,False,True,0
 10013,turki,almalki,0000,False,False,True,0

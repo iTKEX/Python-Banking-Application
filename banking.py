@@ -32,6 +32,11 @@ transactions = """
                 TRANSACTIONS
 ==========================================="""
 
+transfer = """
+===========================================
+               TRANSFER MONEY
+==========================================="""
+
 fieldnames = [
     "id",
     "first_name",
@@ -156,7 +161,7 @@ class Transactions:
         pass
 
     def transactions_menu(customer):
-        user_options = ["1", "2", "3", "q"]
+        user_options = ["1", "2", "3","4", "5"]
         user_input = None
         user_choise = None
         while user_input not in user_options:
@@ -166,9 +171,9 @@ class Transactions:
             if result == "select_account_menu":
                 Transactions.select_account_menu(customer)
             elif result == "transactions_menu":
-                while user_choise != "4":
+                while user_choise != "5":
                     print(transactions)
-                    print("1. Check your account balance \n2. Add money\n3. Withdraw money\n4. log out")
+                    print("1. Check your account balance \n2. Add money\n3. Withdraw money\n4. Transfer money\n5. log out")
                     user_choise = input("Please choose what you need\t")
                     match user_choise:
                         case "1":
@@ -180,11 +185,13 @@ class Transactions:
                             Transactions.withdraw_money(customer)
                             Transactions.is_active(customer)
                         case "4":
+                            Transactions.transfer_money_menu(customer)
+                        case "5":
                             Bank.log_out()
                             return None
 
     def select_account_menu(customer):
-        user_options = ["1", "2", "3", "q"]
+        user_options = ["1", "2", "3"]
         while user_input not in user_options:
             print(transactions)
             print("Which Account you want to access")
@@ -269,10 +276,6 @@ class Transactions:
         if int(customer['overdraft_count']) == 2:
                 customer['active'] = "False"
                 return None
-        fee = 35
-        if float(customer[Transactions.account_type]) <= 0 and int(customer['overdraft_count']) < 2:
-            customer[Transactions.account_type] = float(customer[Transactions.account_type]) - fee
-            customer['overdraft_count'] = int(customer['overdraft_count']) + 1
     
     
     def add_money(customer):
@@ -294,7 +297,13 @@ class Transactions:
                 print("Please enter valid number")
             elif float(amount_of_money) > 0 and float(amount_of_money) <101:
                 customer[Transactions.account_type] = float(customer[Transactions.account_type]) - float(amount_of_money)
-                print(f"Withdraw successfully, Your current balance is : {customer[Transactions.account_type]}$")
+                fee = 35
+                if float(customer[Transactions.account_type]) <= 0 and int(customer['overdraft_count']) < 2:
+                    customer[Transactions.account_type] = float(customer[Transactions.account_type]) - fee
+                    customer['overdraft_count'] = int(customer['overdraft_count']) + 1
+                    if int(customer['overdraft_count']) == 2:
+                        customer['active'] = "False"
+                print(f"Withdraw successful, Your Current Balance is: {customer[Transactions.account_type]}$")
                 return None
             else:
                 print("Please enter valid number")
@@ -308,6 +317,29 @@ class Transactions:
             customer['active'] = True
             customer['overdraft_count'] = 0
             return None
+        
+    def transfer_money_menu(customer):
+        user_options = ["1","2","3"]
+        user_input = None
+        while user_input not in user_options:
+            print("\n\n", transfer)
+            print("Select choice from below\n1. Transfer money between your accounts\n2. Transfer money to other person account")
+            user_input = input("Please Choose option")
+            match user_input:
+                case "1":
+                    Transactions.transfer_between_accounts()
+                case "2":
+                    Transactions.is_active(customer)
+                    Transactions.transfer_to_person_account()
+                case "3":
+                    Bank.log_out()
+                    return None
+    
+    def transfer_between_accounts():
+        print("Transfer between work!")
+    
+    def transfer_to_person_account():
+        print("Transfer to account work!")
 # --------------------- FUNCTIONS ---------------------#
 def init():
     # this is the entry point

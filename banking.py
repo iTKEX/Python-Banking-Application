@@ -13,28 +13,28 @@ import csv
 
 # --------------------- CONSTANTS ---------------------#
 welcome = """
-================================
-🏦 Hello to you're Python Bank!
-================================"""
+===================================
+🏦 Hello to you're Python Bank! 🐍
+==================================="""
 
 sign_in = """
 ===========================================
-                SIGN IN
+                SIGN IN 🔑
 ==========================================="""
 
 sign_up = """
 ===========================================
-                SIGN UP
+                SIGN UP 📝
 ==========================================="""
 
 transactions = """
 ===========================================
-                TRANSACTIONS
+                TRANSACTIONS 💱
 ==========================================="""
 
 transfer = """
 ===========================================
-               TRANSFER MONEY
+           ⬇️ TRANSFER MONEY ⬆️
 ==========================================="""
 
 fieldnames = [
@@ -48,20 +48,11 @@ fieldnames = [
     "overdraft_count",
 ]
 
-# --------------------- TO DO --------------------- #
-"""
-#1 Check user Accounts:
-
-#2 Customer can add money:
-    - Customer can add money to saving
-    - Customer can add money to checking
-
-"""
-
-
 # --------------------- Customer Class ---------------------#
 class Customer:
-
+    '''
+    Customer class if for init each customer in Bank
+    '''
     def __init__(
         self,
         id,
@@ -85,16 +76,21 @@ class Customer:
 
 # --------------------- Bank Class ---------------------#
 class Bank:
+    '''
+    Handle Bank accounts proccess and information
+    '''
     accounts = []
     current_user = None
     csv_file_path = "assets/bank.csv"
 
+    # load accounts from csv file to list
     def load_accounts():
         with open(Bank.csv_file_path, "r") as file:
             reader = csv.DictReader(file)
             accounts = [row for row in reader]
         Bank.accounts = accounts
 
+    #create new account and add it to csv
     def sign_up_account():
         user_first_name = user_last_name = user_password = None
         while not user_first_name or not user_last_name or not user_password:
@@ -112,6 +108,7 @@ class Bank:
             if not user_first_name or not user_last_name or not user_password:
                 print("All fields are required. Try again.\n")
 
+        # create new id for new account
         ids = []
         for account in Bank.accounts:
             id = account["id"]
@@ -121,11 +118,13 @@ class Bank:
 
         new_account = Customer(new_id, user_first_name, user_last_name, user_password)
 
+        # write new user information to the csv file
         with open(Bank.csv_file_path, "a") as file:
             writer = csv.DictWriter(file, fieldnames=fieldnames)
             writer.writerow(vars(new_account))
         Bank.load_accounts()
 
+    # sign in user by asking for credintals
     def sign_in_account():
         while True:
             print(sign_in)
@@ -139,7 +138,7 @@ class Bank:
                 return True
             else:
                 print("Please Enter valid credintals")
-
+    # check the user credintals
     def check_sign_in_credintals(id, password):
         for account in Bank.accounts:
             if account["id"] == id and account["password"] == password:
@@ -147,6 +146,7 @@ class Bank:
                 return True
         return False
     
+    # save the changes on account to the csv file
     def save_accounts():
         with open(Bank.csv_file_path, "w", newline="") as file:
             writer = csv.DictWriter(file, fieldnames=fieldnames)
@@ -154,6 +154,7 @@ class Bank:
             for account in Bank.accounts:
                 writer.writerow(account)
 
+    # log out current user account
     def log_out():
         Bank.current_user = None
         return None
@@ -161,6 +162,9 @@ class Bank:
 
 # --------------------- Transactions Class ---------------------#
 class Transactions:
+    '''
+    Handle all porject transactions
+    '''
     account_type = None
 
     def __init__(self):
@@ -198,7 +202,7 @@ class Transactions:
                         case "6":
                             Bank.log_out()
                             return None
-
+    # menu to make user choose which account he want to deal with
     def select_account_menu(customer):
         user_options = ["1", "2", "3"]
         user_input = None
@@ -218,6 +222,7 @@ class Transactions:
                     Bank.log_out()
                     return None
 
+    # check user account types
     def check_user_accounts(customer):
         user_options = ["1", "2", "3"]
         user_input = None
@@ -286,6 +291,7 @@ class Transactions:
         else:
             return "transactions_menu"
         
+    # check for user current balance
     def check_balance(customer):
         print(f"Your current balance is : {customer[Transactions.account_type]}$")
         if int(customer['overdraft_count']) == 2:
@@ -293,7 +299,7 @@ class Transactions:
                 Bank.save_accounts()
                 return None
     
-    
+    # add money to user account 
     def add_money(customer):
         print(f"You want to add money to {Transactions.account_type}")
         amount_of_money = input("Please Enter the amount of money you want to add it\t")
@@ -302,6 +308,7 @@ class Transactions:
         Bank.save_accounts()
         return None
     
+    # deposite money from user account
     def withdraw_money(customer):
         if customer['active'] == "False":
             return
@@ -326,7 +333,7 @@ class Transactions:
             else:
                 print("Please enter valid number")
                 
-
+    # check the status of user account
     def is_active(customer):
         if customer['active'] == "False" and int(customer[Transactions.account_type]) < 0:
             print("Your account is deactivated. \nYou must settle your outstanding overdraft fees to reactivate it.")
@@ -337,7 +344,7 @@ class Transactions:
             customer['overdraft_count'] = 0
             Bank.save_accounts()
             return None
-        
+    
     def transfer_money_menu(customer):
         user_options = ["1","2","3"]
         user_input = None
@@ -350,10 +357,11 @@ class Transactions:
                     Transactions.transfer_between_accounts(customer)
                 case "2":
                     Transactions.is_active(customer)
-                    # Transactions.transfer_to_person_account(customer)
+                    Transactions.transfer_to_person_account(customer)
                 case "3":
                     return None
     
+    # transfer money between customer accounts
     def transfer_between_accounts(customer):
         if customer["checking"] == "False" or customer["savings"] == "False":
             print("You must have BOTH accounts to transfer between them.")
@@ -398,13 +406,89 @@ class Transactions:
         Bank.save_accounts()
         return None
 
-    
-    def transfer_to_person_account():
-        print("Transfer to account work!")
+    # transfer money from current customer to other customer
+    def transfer_to_person_account(customer):
+        Transactions.is_active(customer)
+        if customer["active"] == "False":
+            return None
+        
+        source = Transactions.account_type
+        src_balance = float(customer[source])
+        if src_balance <= 0:
+            print(f"Cannot transfer: your {source} balance is {src_balance}$ (must be > 0).")
+            return None
+
+        receiver_id = input("Enter recipient customer ID (or 'C' to cancel)\t")
+        if receiver_id.lower() == "c":
+            return None
+
+        target = None
+        for account in Bank.accounts:
+            if account["id"] == receiver_id:
+                target = account
+                break
+        if target is None:
+            print("Recipient not found.")
+            return None
+        if target is customer:
+            print("You cannot transfer to yourself here. Use 'Transfer between your accounts'.")
+            return None
+
+        receiver_accounts = []
+        if target["savings"] != "False":
+            receiver_accounts.append("savings")
+        if target["checking"] != "False":
+            receiver_accounts.append("checking")
+
+        if not receiver_accounts:
+            print("Recipient has no accounts to receive money.")
+            return None
+        elif len(receiver_accounts) == 1:
+            destination = receiver_accounts[0]
+            print(f"Recipient has only {destination}; will deposit there.")
+        else:
+            dest_choice = None
+            while dest_choice not in ("1", "2", "3"):
+                print("Send to:\n1. Recipient Savings\n2. Recipient Checking\n3. Cancel")
+                dest_choice = input("Choose option\t")
+                if dest_choice == "3":
+                    return None
+            destination = "savings" if dest_choice == "1" else "checking"
+
+        user_amount = None
+        while user_amount is None:
+            amt = input(f"Enter amount to send from your {source} to recipient {destination} (or 'C' to cancel)\t")
+            if amt.lower() == "c":
+                return None
+            try:
+                amt = float(amt)
+            except ValueError:
+                print("Please enter a valid number.")
+                continue
+            if amt <= 0:
+                print("Amount must be greater than 0.")
+                continue
+            if amt > src_balance:
+                print("Insufficient funds (no overdrafts allowed).")
+                continue
+            user_amount = amt
+
+        customer[source] = src_balance - user_amount
+        target[destination] = float(target[destination]) + user_amount
+
+        print("Transfer successful.")
+        print(f"Your new balances -> Checking: {customer['checking']}$, Savings: {customer['savings']}$")
+        Bank.save_accounts()
+        return None
+
 # --------------------- FUNCTIONS ---------------------#
 def init():
-    # this is the entry point
+    '''
+    Entry point of Project
+    '''
+    # load all accounts before project start
     Bank.load_accounts()
+    # shows the project main menu
     session = True
     while session:
         print(welcome)

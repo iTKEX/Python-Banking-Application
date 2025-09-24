@@ -200,7 +200,7 @@ class Transactions:
             print(transactions)
             print("Which Account you want to access")
             print("1. Saving account \n2. Checking account\n3. log out")
-            user_input = input("Which account you want to access")
+            user_input = input("Which account you want to access \t")
             match user_input:
                 case "1":
                     Transactions.account_type = "savings"
@@ -260,7 +260,7 @@ class Transactions:
                 print(
                     "1. Access Saving account \n2. Create Checking account and access it\n3. log out"
                 )
-                user_input = input("Please Choose option")
+                user_input = input("Please Choose option \t")
                 match user_input:
                     case "1":
                         Transactions.account_type = "savings"
@@ -327,20 +327,60 @@ class Transactions:
         user_input = None
         while user_input not in user_options:
             print("\n\n", transfer)
-            print("Select choice from below\n1. Transfer money between your accounts\n2. Transfer money to other person account")
-            user_input = input("Please Choose option")
+            print("Select choice from below\n1. Transfer money between your accounts\n2. Transfer money to other person account\n3. Back to transactions menu")
+            user_input = input("Please Choose option\t")
             match user_input:
                 case "1":
-                    Transactions.transfer_between_accounts()
+                    Transactions.transfer_between_accounts(customer)
                 case "2":
                     Transactions.is_active(customer)
-                    Transactions.transfer_to_person_account()
+                    # Transactions.transfer_to_person_account(customer)
                 case "3":
-                    Bank.log_out()
                     return None
     
-    def transfer_between_accounts():
-        print("Transfer between work!")
+    def transfer_between_accounts(customer):
+        if customer["checking"] == "False" or customer["savings"] == "False":
+            print("You must have BOTH accounts to transfer between them.")
+            return None
+
+        Transactions.is_active(customer)
+        if customer["active"] == "False":
+            print("Your account is deactivated. Settle overdrafts before transferring.")
+            return None
+
+        source = Transactions.account_type
+        destination = "savings" if source == "checking" else "checking"
+
+        src_balance = float(customer[source])
+        if src_balance <= 0:
+            print(f"Cannot transfer: your {source} balance is {src_balance}$ (must be > 0).")
+            return None
+        user_amount = None
+        
+        while user_amount is None:
+            amount = input(f"Enter amount to transfer from {source} to {destination}: or 'C' for Cancel\t")
+            if amount.lower() == "q":
+                return None
+            try:
+                amount = float(amount)
+            except ValueError:
+                print("Please enter a valid number.")
+                continue
+            if amount <= 0:
+                print("Amount must be greater than 0.")
+                continue
+            if amount > src_balance:
+                print("Insufficient funds in the source account (no overdrafts allowed).")
+                continue
+            user_amount = amount
+
+        customer[source] = src_balance - amount
+        customer[destination] = float(customer[destination]) + amount
+
+        print("Transfer successful.")
+        print(f"New balances -> Checking: {customer['checking']}$, Savings: {customer['savings']}$")
+        return None
+
     
     def transfer_to_person_account():
         print("Transfer to account work!")
@@ -354,7 +394,7 @@ def init():
         print(
             "Please choose from below.\n1. SIGN UP\n2. Log in to your account.\n3. Quit"
         )
-        user_input = input("\nPlease Enter your choice as a number: ")
+        user_input = input("\nPlease Enter your choice as a number: \t")
         match user_input:
             case "1":
                 print("\n")

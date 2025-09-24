@@ -231,12 +231,15 @@ class Transactions:
                     case "1":
                         customer["checking"] = 0
                         customer["savings"] = 0
+                        Bank.save_accounts()
                         return "transactions_menu"
                     case "2":
                         customer["checking"] = 0
+                        Bank.save_accounts()
                         return "transactions_menu"
                     case "3":
                         customer["savings"] = 0
+                        Bank.save_accounts()
                         return "transactions_menu"
         elif customer["checking"] != "False" and customer["savings"] == "False":
             while user_input not in user_options:
@@ -253,6 +256,7 @@ class Transactions:
                         return "transactions_menu"
                     case "2":
                         customer["savings"] = 0
+                        Bank.save_accounts()
                         Transactions.account_type = "savings"
                         return "transactions_menu"
                     case "3":
@@ -273,6 +277,7 @@ class Transactions:
                         return "transactions_menu"
                     case "2":
                         customer["checking"] = 0
+                        Bank.save_accounts()
                         Transactions.account_type = 'checking'
                         return "transactions_menu"
                     case "3":
@@ -285,6 +290,7 @@ class Transactions:
         print(f"Your current balance is : {customer[Transactions.account_type]}$")
         if int(customer['overdraft_count']) == 2:
                 customer['active'] = "False"
+                Bank.save_accounts()
                 return None
     
     
@@ -293,6 +299,7 @@ class Transactions:
         amount_of_money = input("Please Enter the amount of money you want to add it\t")
         customer[Transactions.account_type] = float(customer[Transactions.account_type]) + float(amount_of_money)
         print(f"Add money successfully, Your current balance is : {customer[Transactions.account_type]}$")
+        Bank.save_accounts()
         return None
     
     def withdraw_money(customer):
@@ -314,6 +321,7 @@ class Transactions:
                     if int(customer['overdraft_count']) == 2:
                         customer['active'] = "False"
                 print(f"Withdraw successful, Your Current Balance is: {customer[Transactions.account_type]}$")
+                Bank.save_accounts()
                 return None
             else:
                 print("Please enter valid number")
@@ -322,10 +330,12 @@ class Transactions:
     def is_active(customer):
         if customer['active'] == "False" and int(customer[Transactions.account_type]) < 0:
             print("Your account is deactivated. \nYou must settle your outstanding overdraft fees to reactivate it.")
+            Bank.save_accounts()
             return None
         elif customer['active'] == "False" and int(customer[Transactions.account_type])> 0:
             customer['active'] = True
             customer['overdraft_count'] = 0
+            Bank.save_accounts()
             return None
         
     def transfer_money_menu(customer):
@@ -365,7 +375,7 @@ class Transactions:
         
         while user_amount is None:
             amount = input(f"Enter amount to transfer from {source} to {destination}: or 'C' for Cancel\t")
-            if amount.lower() == "q":
+            if amount.lower() == "c":
                 return None
             try:
                 amount = float(amount)
@@ -380,11 +390,12 @@ class Transactions:
                 continue
             user_amount = amount
 
-        customer[source] = src_balance - amount
-        customer[destination] = float(customer[destination]) + amount
+        customer[source] = src_balance - user_amount
+        customer[destination] = float(customer[destination]) + user_amount
 
         print("Transfer successful.")
         print(f"New balances -> Checking: {customer['checking']}$, Savings: {customer['savings']}$")
+        Bank.save_accounts()
         return None
 
     

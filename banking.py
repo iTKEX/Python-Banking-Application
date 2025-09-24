@@ -142,11 +142,17 @@ class Bank:
 
     def check_sign_in_credintals(id, password):
         for account in Bank.accounts:
-            # account['id']
             if account["id"] == id and account["password"] == password:
                 Bank.current_user = account
                 return True
         return False
+    
+    def save_accounts():
+        with open(Bank.csv_file_path, "w", newline="") as file:
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            writer.writeheader()
+            for account in Bank.accounts:
+                writer.writerow(account)
 
     def log_out():
         Bank.current_user = None

@@ -161,7 +161,7 @@ class Transactions:
         pass
 
     def transactions_menu(customer):
-        user_options = ["1", "2", "3","4", "5"]
+        user_options = ["1", "2", "3","4", "5","6"]
         user_input = None
         user_choise = None
         while user_input not in user_options:
@@ -171,9 +171,9 @@ class Transactions:
             if result == "select_account_menu":
                 Transactions.select_account_menu(customer)
             elif result == "transactions_menu":
-                while user_choise != "5":
+                while user_choise != "6":
                     print(transactions)
-                    print("1. Check your account balance \n2. Add money\n3. Withdraw money\n4. Transfer money\n5. log out")
+                    print("1. Check your account balance \n2. Add money\n3. Withdraw money\n4. Transfer money\n5. Change account\n6. log out")
                     user_choise = input("Please choose what you need\t")
                     match user_choise:
                         case "1":
@@ -187,11 +187,15 @@ class Transactions:
                         case "4":
                             Transactions.transfer_money_menu(customer)
                         case "5":
+                            Transactions.check_user_accounts(customer)
+                            Transactions.select_account_menu(customer)
+                        case "6":
                             Bank.log_out()
                             return None
 
     def select_account_menu(customer):
         user_options = ["1", "2", "3"]
+        user_input = None
         while user_input not in user_options:
             print(transactions)
             print("Which Account you want to access")
@@ -228,7 +232,7 @@ class Transactions:
                     case "3":
                         customer["savings"] = 0
                         return "transactions_menu"
-        elif customer["checking"] != "False":
+        elif customer["checking"] != "False" and customer["savings"] == "False":
             while user_input not in user_options:
                 print(
                     "You have only checking account You want access it or create Saving account?"
@@ -248,7 +252,7 @@ class Transactions:
                     case "3":
                         Bank.log_out()
                         return None
-        elif customer["savings"] != "False":
+        elif customer["savings"] != "False" and customer["checking"] == "False":
             while user_input not in user_options:
                 print(
                     "You have only Saving account You want access it or create Checking account?"

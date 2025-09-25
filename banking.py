@@ -329,9 +329,7 @@ class Transactions:
                         History.print_user_history(customer["id"])
                     case "7":
                         transaction_id = input("Please enter transaction id:\t")
-                        History.print_transaction_detail(
-                            customer["id"], transaction_id
-                        )
+                        History.print_transaction_detail(customer["id"], transaction_id)
                     case "8":
                         Bank.log_out()
                         return None
@@ -427,10 +425,7 @@ class Transactions:
     # check for user current balance
     def check_balance(customer):
         print(f"Your current balance is : {customer[Transactions.account_type]}$")
-        if int(customer["overdraft_count"]) == 2:
-            customer["active"] = "False"
-            Bank.save_accounts()
-            return None
+        return None
 
     # add money to user account
     def add_money(customer):
@@ -458,71 +453,85 @@ class Transactions:
 
     # deposite money from user account
     def withdraw_money(customer):
-        if customer["active"] == "False":
-            return
+        Transactions.is_active(customer)
         print(f"You want to withdraw money from {Transactions.account_type}")
+
         amount_of_money = 0
         while float(amount_of_money) == 0 or float(amount_of_money) >= 101:
             amount_of_money = input(
                 "Please Enter the amount of money you want to withdraw it (Your maximux is 100$)\t"
             )
-            if float(amount_of_money) > 100:
+
+            try:
+                amount = float(amount_of_money)
+            except ValueError:
+                print("Please enter valid number")
+                continue
+
+            if amount > 100:
                 print("That's above maximum")
                 print("Please enter valid number")
-            elif float(amount_of_money) > 0 and float(amount_of_money) < 101:
-                customer[Transactions.account_type] = float(
-                    customer[Transactions.account_type]
-                ) - float(amount_of_money)
+                continue
+            if not (0 < amount <= 100):
+                print("Please enter valid number")
+                continue
 
-                withdraw_after = float(customer[Transactions.account_type])
-                withdraw_before = withdraw_after + float(amount_of_money)
+            account = Transactions.account_type
+            balance_before = float(customer[account])
+            overdrafts = int(customer["overdraft_count"])
+            fee = 35.0
+
+            balance_after_withdraw = balance_before - amount
+            if balance_after_withdraw < -100:
+                print("Withdrawal denied: Balance cannot go below -100$.")
+                return None
+
+            if balance_after_withdraw <= 0 and overdrafts < 2:
+                bal_after_fee = balance_after_withdraw - fee
+                if bal_after_fee < -100:
+                    print("Withdrawal denied: You cannot have balance below -100$ including fees .")
+                    return None
+
+            customer[account] = balance_after_withdraw
+            History.add_new_log(
+                account_id=customer["id"],
+                transaction_type="withdraw",
+                source_type=account,
+                destination_type="external",
+                destination_id=customer["id"],
+                balance_before=balance_before,
+                balance_after=customer[account],
+                date_str=History.today_date(),
+            )
+
+            if customer[account] <= 0 and overdrafts < 2:
+                fee_before = float(customer[account])
+                customer[account] = fee_before - fee
+                customer["overdraft_count"] = overdrafts + 1
+
                 History.add_new_log(
                     account_id=customer["id"],
-                    transaction_type="withdraw",
-                    source_type=Transactions.account_type,
-                    destination_type="external",
-                    destination_id=customer["id"],
-                    balance_before=withdraw_before,
-                    balance_after=withdraw_after,
+                    transaction_type="overdraft_fee",
+                    source_type=account,
+                    destination_type="-",
+                    destination_id="-",
+                    balance_before=fee_before,
+                    balance_after=customer[account],
                     date_str=History.today_date(),
                 )
 
-                fee = 35
-                if (
-                    float(customer[Transactions.account_type]) <= 0
-                    and int(customer["overdraft_count"]) < 2
-                ):
-                    customer[Transactions.account_type] = (
-                        float(customer[Transactions.account_type]) - fee
-                    )
-                    customer["overdraft_count"] = int(customer["overdraft_count"]) + 1
-                    if int(customer["overdraft_count"]) == 2:
-                        customer["active"] = "False"
-                        fee_after = float(customer[Transactions.account_type])
-                        fee_before = fee_after + fee
-                        History.add_new_log(
-                            account_id=customer["id"],
-                            transaction_type="overdraft_fee",
-                            source_type=Transactions.account_type,
-                            destination_type="-",
-                            destination_id="-",
-                            balance_before=fee_before,
-                            balance_after=fee_after,
-                            date_str=History.today_date(),
-                        )
-                print(
-                    f"Withdraw successful, Your Current Balance is: {customer[Transactions.account_type]}$"
-                )
-                Bank.save_accounts()
-                return None
-            else:
-                print("Please enter valid number")
+                if int(customer["overdraft_count"]) == 2:
+                    customer["active"] = "False"
+
+            print(f"Withdraw successful, Your Current Balance is: {customer[account]}$")
+            Bank.save_accounts()
+            return None
 
     # check the status of user account
     def is_active(customer):
         if (
             customer["active"] == "False"
-            and int(customer[Transactions.account_type]) < 0
+            and float(customer[Transactions.account_type]) < 0
         ):
             print(
                 "Your account is deactivated. \nYou must settle your outstanding overdraft fees to reactivate it."
@@ -531,7 +540,7 @@ class Transactions:
             return None
         elif (
             customer["active"] == "False"
-            and int(customer[Transactions.account_type]) > 0
+            and float(customer[Transactions.account_type]) >= 0
         ):
             customer["active"] = True
             customer["overdraft_count"] = 0
@@ -730,7 +739,7 @@ class Transactions:
             balance_after=target[destination],
             date_str=History.today_date(),
         )
-        
+
         print("Transfer successful.")
         print(
             f"Your new balances -> Checking: {customer['checking']}$, Savings: {customer['savings']}$"

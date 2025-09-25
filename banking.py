@@ -52,7 +52,7 @@ fieldnames = [
 
 log_fieldnames = [
     "transaction_id",
-    "acct_id",
+    "account_id",
     "transaction_type",
     "source_type",
     "destination_type",
@@ -193,22 +193,97 @@ class History:
     #  load log history from the csv file
     def load_history():
         with open(History.csv_file_path, "r") as file:
-            reader = csv.DictReader(file)
-            accounts = [row for row in reader]
-        Bank.accounts = accounts
+            return list(csv.DictReader(file))
 
     # write the log history in the csv file
-    def log_writer():
+    def log_writer(logs):
         with open(History.csv_file_path, "w", newline="") as file:
-            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            writer = csv.DictWriter(file, fieldnames=log_fieldnames)
             writer.writeheader()
-            for account in Bank.accounts:
-                writer.writerow(account)
+            writer.writerows(logs)
+
+    def load_by_user(account_id):
+        return [
+            log
+            for log in History.load_history()
+            if log.get("account_id") == str(account_id)
+        ]
+
+    # return new id for each transaction
+    def new_transaction_id():
+        try:
+            with open(History.csv_file_path, "r") as file:
+                logs = list(csv.DictReader(file))
+        except FileNotFoundError:
+            return 1
+
+        ids = []
+        for log in logs:
+            val = (log.get("transaction_id") or "").strip()
+            if val.isdigit():
+                ids.append(int(val))
+        return (max(ids) + 1) if ids else 1
+
+    # add the new transaction log to the csv file
+    def add_new_log(
+        account_id,
+        transaction_type,
+        source_type="-",
+        destination_type="-",
+        destination_id="-",
+        balance_before=0,
+        balance_after=0,
+        date_str=None,
+    ):
+        transaction_id = History.new_transaction_id()
+        transaction_operation = {
+            "transaction_id": str(transaction_id),
+            "account_id": str(account_id),
+            "transaction_type": str(transaction_type),
+            "source_type": str(source_type),
+            "destination_type": str(destination_type),
+            "destination_id": str(destination_id),
+            "balance_before": str(balance_before),
+            "balance_after": str(balance_after),
+            "date": date_str or History.today_date(),
+        }
+        with open(History.csv_file_path, "a") as file:
+            writer = csv.DictWriter(file, fieldnames=log_fieldnames)
+            if file.tell() == 0:
+                writer.writeheader()
+            writer.writerow(transaction_operation)
+            return transaction_id
 
     # return today date as string
     def today_date():
         return date.today().isoformat()
-    
+
+    def print_user_history(account_id):
+        transactions = History.load_by_user(str(account_id))
+        if not transactions:
+            print("No transactions yet.")
+            return
+        print("\n=========== Transaction Log ===========")
+        for transaction in transactions:
+            print(
+                f"#{transaction['transaction_id']} | {transaction['date']} | {transaction['transaction_type']} | "
+                f"{transaction['source_type']} -> {transaction['destination_type']}({transaction['destination_id']}) | "
+                f"{transaction['balance_before']} -> {transaction['balance_after']}"
+            )
+
+    def print_transaction_detail(account_id, transaction_id):
+        transactions = History.load_by_user(str(account_id))
+        record = next(
+            (r for r in transactions if r.get("transaction_id") == str(transaction_id)),
+            None,
+        )
+        if not record:
+            print("Transaction not found.")
+            return
+        print("\n=== Transaction Detail ===")
+        for key in log_fieldnames:
+            print(f"{key}: {record.get(key)}")
+
 
 # --------------------- Transactions Class ---------------------#
 class Transactions:
@@ -222,46 +297,50 @@ class Transactions:
         pass
 
     def transactions_menu(customer):
-        user_options = ["1", "2", "3", "4", "5", "6"]
+        user_options = ["1", "2", "3", "4", "5", "6", "7", "8"]
         user_input = None
         user_choise = None
         while user_input not in user_options:
             print("\n\n", transactions)
             print(f"Hello {customer['first_name']} {customer['last_name']}")
             result = Transactions.check_user_accounts(customer)
-            if result == "select_account_menu":
-                Transactions.select_account_menu(customer)
-            elif result == "transactions_menu":
-                while user_choise != "6":
-                    print(transactions)
-                    print(
-                        "1. Check your account balance \n2. Add money\n3. Withdraw money\n4. Transfer money\n5. Change account\n6. log out"
-                    )
-                    user_choise = input("Please choose what you need\t")
-                    match user_choise:
-                        case "1":
-                            Transactions.check_balance(customer)
-                        case "2":
-                            Transactions.add_money(customer)
-                        case "3":
-                            Transactions.check_balance(customer)
-                            Transactions.withdraw_money(customer)
-                            Transactions.is_active(customer)
-                        case "4":
-                            Transactions.transfer_money_menu(customer)
-                        case "5":
-                            Transactions.check_user_accounts(customer)
-                            Transactions.select_account_menu(customer)
-                        case "6":
-                            Bank.log_out()
-                            return None
+            Transactions.select_account_menu(customer)
+            while user_choise != "8":
+                print(transactions)
+                print(
+                    "1. Check your account balance \n2. Add money\n3. Withdraw money\n4. Transfer money\n5. Change account\n6. Print all logs\n7. Print log by id\n8. log out"
+                )
+                user_choise = input("Please choose what you need\t")
+                match user_choise:
+                    case "1":
+                        Transactions.check_balance(customer)
+                    case "2":
+                        Transactions.add_money(customer)
+                    case "3":
+                        Transactions.check_balance(customer)
+                        Transactions.withdraw_money(customer)
+                        Transactions.is_active(customer)
+                    case "4":
+                        Transactions.transfer_money_menu(customer)
+                    case "5":
+                        Transactions.check_user_accounts(customer)
+                        Transactions.select_account_menu(customer)
+                    case "6":
+                        History.print_user_history(customer["id"])
+                    case "7":
+                        transaction_id = input("Please enter transaction id:\t")
+                        History.print_transaction_detail(
+                            customer["id"], transaction_id
+                        )
+                    case "8":
+                        Bank.log_out()
+                        return None
 
     # menu to make user choose which account he want to deal with
     def select_account_menu(customer):
         user_options = ["1", "2", "3"]
         user_input = None
         while user_input not in user_options:
-            print(transactions)
             print("Which Account you want to access")
             print("1. Saving account \n2. Checking account\n3. log out")
             user_input = input("Which account you want to access \t")
@@ -343,7 +422,7 @@ class Transactions:
                         Bank.log_out()
                         return None
         else:
-            return "transactions_menu"
+            return "select_account_menu"
 
     # check for user current balance
     def check_balance(customer):
@@ -357,11 +436,22 @@ class Transactions:
     def add_money(customer):
         print(f"You want to add money to {Transactions.account_type}")
         amount_of_money = input("Please Enter the amount of money you want to add it\t")
+        before = customer[Transactions.account_type]
         customer[Transactions.account_type] = float(
             customer[Transactions.account_type]
         ) + float(amount_of_money)
         print(
             f"Add money successfully, Your current balance is : {customer[Transactions.account_type]}$"
+        )
+        History.add_new_log(
+            account_id=customer["id"],
+            transaction_type="deposit",
+            source_type="external",
+            destination_type=Transactions.account_type,
+            destination_id=customer["id"],
+            balance_before=before,
+            balance_after=customer[Transactions.account_type],
+            date_str=History.today_date(),
         )
         Bank.save_accounts()
         return None
@@ -383,6 +473,20 @@ class Transactions:
                 customer[Transactions.account_type] = float(
                     customer[Transactions.account_type]
                 ) - float(amount_of_money)
+
+                withdraw_after = float(customer[Transactions.account_type])
+                withdraw_before = withdraw_after + float(amount_of_money)
+                History.add_new_log(
+                    account_id=customer["id"],
+                    transaction_type="withdraw",
+                    source_type=Transactions.account_type,
+                    destination_type="external",
+                    destination_id=customer["id"],
+                    balance_before=withdraw_before,
+                    balance_after=withdraw_after,
+                    date_str=History.today_date(),
+                )
+
                 fee = 35
                 if (
                     float(customer[Transactions.account_type]) <= 0
@@ -394,6 +498,18 @@ class Transactions:
                     customer["overdraft_count"] = int(customer["overdraft_count"]) + 1
                     if int(customer["overdraft_count"]) == 2:
                         customer["active"] = "False"
+                        fee_after = float(customer[Transactions.account_type])
+                        fee_before = fee_after + fee
+                        History.add_new_log(
+                            account_id=customer["id"],
+                            transaction_type="overdraft_fee",
+                            source_type=Transactions.account_type,
+                            destination_type="-",
+                            destination_id="-",
+                            balance_before=fee_before,
+                            balance_after=fee_after,
+                            date_str=History.today_date(),
+                        )
                 print(
                     f"Withdraw successful, Your Current Balance is: {customer[Transactions.account_type]}$"
                 )
@@ -486,6 +602,28 @@ class Transactions:
         customer[source] = src_balance - user_amount
         customer[destination] = float(customer[destination]) + user_amount
 
+        History.add_new_log(
+            account_id=customer["id"],
+            transaction_type="internal_transfer_debit",
+            source_type=source,
+            destination_type=destination,
+            destination_id=customer["id"],
+            balance_before=src_balance,
+            balance_after=customer[source],
+            date_str=History.today_date(),
+        )
+
+        dest_before = float(customer[destination]) - user_amount
+        History.add_new_log(
+            account_id=customer["id"],
+            transaction_type="internal_transfer_credit",
+            source_type=source,
+            destination_type=destination,
+            destination_id=customer["id"],
+            balance_before=dest_before,
+            balance_after=customer[destination],
+            date_str=History.today_date(),
+        )
         print("Transfer successful.")
         print(
             f"New balances -> Checking: {customer['checking']}$, Savings: {customer['savings']}$"
@@ -571,6 +709,28 @@ class Transactions:
         customer[source] = src_balance - user_amount
         target[destination] = float(target[destination]) + user_amount
 
+        History.add_new_log(
+            account_id=customer["id"],
+            transaction_type="external_transfer_debit",
+            source_type=source,
+            destination_type=destination,
+            destination_id=target["id"],
+            balance_before=src_balance,
+            balance_after=customer[source],
+            date_str=History.today_date(),
+        )
+        dest_before = float(target[destination]) - user_amount
+        History.add_new_log(
+            account_id=target["id"],
+            transaction_type="external_transfer_credit",
+            source_type=source,
+            destination_type=destination,
+            destination_id=customer["id"],
+            balance_before=dest_before,
+            balance_after=target[destination],
+            date_str=History.today_date(),
+        )
+        
         print("Transfer successful.")
         print(
             f"Your new balances -> Checking: {customer['checking']}$, Savings: {customer['savings']}$"

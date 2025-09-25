@@ -319,7 +319,6 @@ class Transactions:
                     case "3":
                         Transactions.check_balance(customer)
                         Transactions.withdraw_money(customer)
-                        Transactions.is_active(customer)
                     case "4":
                         Transactions.transfer_money_menu(customer)
                     case "5":
@@ -453,7 +452,9 @@ class Transactions:
 
     # deposite money from user account
     def withdraw_money(customer):
-        Transactions.is_active(customer)
+        result = Transactions.is_active(customer)
+        if result is False:
+            return
         print(f"You want to withdraw money from {Transactions.account_type}")
 
         amount_of_money = 0
@@ -537,7 +538,7 @@ class Transactions:
                 "Your account is deactivated. \nYou must settle your outstanding overdraft fees to reactivate it."
             )
             Bank.save_accounts()
-            return None
+            return False
         elif (
             customer["active"] == "False"
             and float(customer[Transactions.account_type]) >= 0
@@ -560,7 +561,6 @@ class Transactions:
                 case "1":
                     Transactions.transfer_between_accounts(customer)
                 case "2":
-                    Transactions.is_active(customer)
                     Transactions.transfer_to_person_account(customer)
                 case "3":
                     return None

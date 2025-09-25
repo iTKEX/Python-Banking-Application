@@ -40,3 +40,4 @@ transaction_id,account_id,transaction_type,source_type,destination_type,destinat
 39,10010,overdraft_fee,savings,-,-,-45.0,-80.0,2025-09-25
 40,10010,withdraw,savings,external,10010,-80.0,-90.0,2025-09-25
 41,10010,withdraw,savings,external,10010,-90.0,-100.0,2025-09-25
+42,10010,deposit,external,checking,10010,1000000860.0,1000001860.0,2025-09-25

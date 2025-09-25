@@ -530,23 +530,23 @@ class Transactions:
 
     # check the status of user account
     def is_active(customer):
-        if (
-            customer["active"] == "False"
-            and float(customer[Transactions.account_type]) < 0
-        ):
-            print(
-                "Your account is deactivated. \nYou must settle your outstanding overdraft fees to reactivate it."
-            )
-            Bank.save_accounts()
-            return False
-        elif (
-            customer["active"] == "False"
-            and float(customer[Transactions.account_type]) >= 0
-        ):
-            customer["active"] = True
-            customer["overdraft_count"] = 0
-            Bank.save_accounts()
-            return None
+        savings_balance = float(customer["savings"]) if customer["savings"] != "False" else 0.0
+        checking_balance = float(customer["checking"]) if customer["checking"] != "False" else 0.0
+
+        if customer["active"] == "False":
+            if savings_balance >= 0 and checking_balance >= 0:
+                customer["active"] = "True"
+                customer["overdraft_count"] = 0
+                Bank.save_accounts()
+                return True
+            else:
+                print(
+                    "Your account is deactivated. \nYou must settle your outstanding overdraft fees to reactivate it."
+                )
+                Bank.save_accounts()
+                return False
+
+        return True
 
     def transfer_money_menu(customer):
         user_options = ["1", "2", "3"]

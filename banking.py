@@ -140,6 +140,10 @@ class Bank:
             writer = csv.DictWriter(file, fieldnames=fieldnames)
             writer.writerow(vars(new_account))
         Bank.load_accounts()
+        print(f"\nAccount created successfully, {user_first_name} {user_last_name}! 🎉")
+        print(f"Your Customer ID is: {new_id}")
+        print("Please keep it safe. You’ll need it to log in.\n")
+
 
     # sign in user by asking for credintals
     def sign_in_account():
@@ -174,7 +178,7 @@ class Bank:
 
     # log out current user account
     def log_out():
-        Bank.current_user = None
+        init()
         return None
 
 
@@ -305,7 +309,7 @@ class Transactions:
             print(f"Hello {customer['first_name']} {customer['last_name']}")
             result = Transactions.check_user_accounts(customer)
             Transactions.select_account_menu(customer)
-            while user_choise != "8":
+            while user_choise != 8:
                 print(transactions)
                 print(
                     "1. Check your account balance \n2. Add money\n3. Withdraw money\n4. Transfer money\n5. Change account\n6. Print all logs\n7. Print log by id\n8. log out"
@@ -490,7 +494,9 @@ class Transactions:
             if balance_after_withdraw <= 0 and overdrafts < 2:
                 bal_after_fee = balance_after_withdraw - fee
                 if bal_after_fee < -100:
-                    print("Withdrawal denied: You cannot have balance below -100$ including fees .")
+                    print(
+                        "Withdrawal denied: You cannot have balance below -100$ including fees ."
+                    )
                     return None
 
             customer[account] = balance_after_withdraw
@@ -530,8 +536,12 @@ class Transactions:
 
     # check the status of user account
     def is_active(customer):
-        savings_balance = float(customer["savings"]) if customer["savings"] != "False" else 0.0
-        checking_balance = float(customer["checking"]) if customer["checking"] != "False" else 0.0
+        savings_balance = (
+            float(customer["savings"]) if customer["savings"] != "False" else 0.0
+        )
+        checking_balance = (
+            float(customer["checking"]) if customer["checking"] != "False" else 0.0
+        )
 
         if customer["active"] == "False":
             if savings_balance >= 0 and checking_balance >= 0:
@@ -571,22 +581,19 @@ class Transactions:
             print("You must have BOTH accounts to transfer between them.")
             return None
 
-        Transactions.is_active(customer)
-        if customer["active"] == "False":
-            print("Your account is deactivated. Settle overdrafts before transferring.")
-            return None
-
         source = Transactions.account_type
         destination = "savings" if source == "checking" else "checking"
 
         src_balance = float(customer[source])
+        dst_balance = float(customer[destination])
+
         if src_balance <= 0:
             print(
                 f"Cannot transfer: your {source} balance is {src_balance}$ (must be > 0)."
             )
             return None
-        user_amount = None
 
+        user_amount = None
         while user_amount is None:
             amount = input(
                 f"Enter amount to transfer from {source} to {destination}: or 'C' for Cancel\t"
@@ -609,7 +616,7 @@ class Transactions:
             user_amount = amount
 
         customer[source] = src_balance - user_amount
-        customer[destination] = float(customer[destination]) + user_amount
+        customer[destination] = dst_balance + user_amount
 
         History.add_new_log(
             account_id=customer["id"],
@@ -622,21 +629,23 @@ class Transactions:
             date_str=History.today_date(),
         )
 
-        dest_before = float(customer[destination]) - user_amount
         History.add_new_log(
             account_id=customer["id"],
             transaction_type="internal_transfer_credit",
             source_type=source,
             destination_type=destination,
             destination_id=customer["id"],
-            balance_before=dest_before,
+            balance_before=dst_balance,
             balance_after=customer[destination],
             date_str=History.today_date(),
         )
+
         print("Transfer successful.")
         print(
             f"New balances -> Checking: {customer['checking']}$, Savings: {customer['savings']}$"
         )
+
+        Transactions.is_active(customer)
         Bank.save_accounts()
         return None
 
@@ -753,6 +762,7 @@ def init():
     """
     Entry point of Project
     """
+    Bank.current_user = None
     # load all accounts before project start
     Bank.load_accounts()
     # shows the project main menu

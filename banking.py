@@ -178,7 +178,7 @@ class Bank:
 
     # log out current user account
     def log_out():
-        init()
+        print("Logged out")
         return None
 
 
@@ -353,7 +353,8 @@ class Transactions:
                     Transactions.account_type = "checking"
                     return "transactions_menu"
                 case "3":
-                    Bank.log_out()
+                    Bank.current_user = None
+                    init()
                     return None
 
     # check user account types
